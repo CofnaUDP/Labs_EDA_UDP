@@ -5,6 +5,124 @@ import java.io.OutputStreamWriter;
 import java.io.*;
 
 public class Main{
+    public static class BigVigenere{
+        private final int[] key;
+        private final char[][] alphabet;
+        
+        public BigVigenere(){
+            this(askForKey());
+        }
+        public BigVigenere(String numericKey){
+            if(numericKey==null || numericKey.isEmpty()){
+                throw new IllegalArgumentException("La clave no puede ser nula o vacía");
+            }
+            if(!numericKey.matches("\\d+")){
+                throw new IllegalArgumentException("La clave debe contraer solo digitos (0-9)");
+            }
+            
+            
+            
+            this.key = new int[numericKey.length()];
+            for (int i=0; i<numericKey.length(); i++){
+                key[i]=Character.getNumericValue(numericKey.charAt(i));
+            }
+            this.alphabet=generateAlphabet();
+        }
+        private static String askForKey(){
+            System.out.print("Ingrese una llave: ");
+            Scanner sc = new Scanner(System.in);
+            return sc.next();
+        }
+        private char[][] generateAlphabet(){
+            char[][] alphabet = new char[64][64];
+            char currentChar='a';
+            for(int i=0; i<64; i++){
+                char c=currentChar;
+                for(int j=0; j<64; j++){
+                    alphabet[i][j]=c;
+                    c=getNextChar(c);
+                }
+                currentChar=getNextChar(currentChar);
+            }
+            return alphabet;
+        }
+        private char getNextChar(char c){
+            switch (c){
+                case 'n': return 'ñ';
+                case 'ñ': return 'o';
+                case 'N': return 'Ñ';
+                case 'Ñ': return 'O';
+                case 'z': return 'A';
+                case 'Z': return '0';
+                case '9': return 'a';
+                default: return (char)(c + 1);
+            }
+        }
+        public String Encrypt(String message){
+            if(message==null) return "";
+            
+            StringBuilder encrypt_message = new StringBuilder();
+            int keyIndex=0;
+            for(int i=0; i<message.length(); i++){
+                char currentChar=message.charAt(i);
+                if(currentChar==' '){
+                    encrypt_message.append(' ');
+                    continue;
+                }
+                int load=getLoadValue(currentChar);
+                if(load==-1)continue;
+                for(int j=load; j<64; j++){
+                    if(currentChar==alphabet[0][j]){
+                        int k=key[keyIndex] + 54;
+                        encrypt_message.append(alphabet[k][j]);
+                        break;
+                    }
+                }
+                keyIndex=(keyIndex + 1)%key.length;
+            }
+            return encrypt_message.toString();
+        }
+        public String Decrypt(String encryptedMessage){
+            if(encryptedMessage==null) return "";
+            
+            StringBuilder decrypt_message = new StringBuilder();
+            int keyIndex = 0;
+            for(int i=0; i<encryptedMessage.length(); i++){
+                char currentChar=encryptedMessage.charAt(i);
+                if (currentChar==' '){
+                    decrypt_message.append(' ');
+                    continue;
+                }
+                int k=key[keyIndex] + 54;
+                for (int j=0; j<64; j++){
+                    if (currentChar==alphabet[k][j]){
+                        decrypt_message.append(alphabet[0][j]);
+                        break;
+                    }
+                }
+                keyIndex=(keyIndex + 1)%key.length;
+            }
+            return decrypt_message.toString();
+        }
+        private int getLoadValue(char c){
+            if(c>='a' && c<='z') return 0;
+            if(c>='A' && c<='Z') return 27;
+            if(c>='0' && c<='9') return 54;
+            return -1;
+        }
+        public int getKey(){
+            return key.length;
+        }
+        public void Print(){
+            for(int i=0; i<64; i++){
+                for(int j=0; j<64; j++){
+                    System.out.print(alphabet[i][j] + " ");
+                }
+                System.out.println();
+            }
+        }
+    }
+}
     public static void main(String[] args) throws IOException{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
