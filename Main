@@ -114,6 +114,46 @@ public class Main{
             if(c>='0' && c<='9') return 54;
             return -1;
         }
+       
+
+        public void reEncrypt(BufferedReader br, BufferedWriter bw) throws IOException{
+    
+        bw.write("Ingresar mensaje encriptado: ");
+        bw.flush();
+        String encryptedMessage = br.readLine();
+
+        if (encryptedMessage == null || encryptedMessage.trim().isEmpty()) {
+            bw.write("El mensaje encriptado no puede estar vacío. ");
+            bw.flush();
+            return;
+        }
+
+        String decryptedMessage = this.Decrypt(encryptedMessage);
+        bw.write("Ingrese nueva clave (solo dígitos): ");
+        bw.flush();
+        String nuevaClave = br.readLine();
+
+        if (!nuevaClave.matches("\\d+")) {
+            bw.write("Error: La clave debe contener solo dígitos. ");
+            bw.flush();
+            return;
+        }
+
+        BigVigenere new_Vigenere = new BigVigenere(nuevaClave);
+        String new_message = new_Vigenere.Encrypt(decryptedMessage);
+
+        bw.write("Nuevo mensaje encriptado: " + new_message + "\n");
+        bw.flush();
+
+        }
+         public char search(int position) {
+            if (position < 0 || position >= 64 * 64) {
+            throw new IllegalArgumentException("Posición fuera del rango válido (0 - 4095)");}
+            int row = position / 64;
+            int col = position % 64;
+            return alphabet[row][col];
+        }
+
         public int getKey(){
             return key.length;
         }
@@ -126,28 +166,9 @@ public class Main{
             }
         }
     }
-}
+
     public static void main(String[] args) throws IOException{
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
-
-        char n["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r"];
-        int m;
-
-        bw.write("Ingrese el set para la key: ");
-        bw.flush();
-        int keySize = Integer.parseInt(br.readLine());
-
-        int[] keys = new int[keySize];
-        for(int i = 0; i<keySize; i++){
-            bw.write("Ingrese el valor para la posicion "+ i +" : ");
-            bw.flush();
-            keys[i] = Integer.parseInt(br.readLine());
-
-        }
-        char[][] alphabet = new char[n][m];
-        for(int i = 0; i<; i++){}
-
+       
     }
 
 }
