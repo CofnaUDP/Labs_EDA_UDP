@@ -1,0 +1,163 @@
+import java.io.*;
+
+public class BigVigenere {
+    private final char[][] alphabet;
+    private final int[] key;
+
+    public BigVigenere() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Ingrese una key: ");
+        String clave = br.readLine();
+        this.key = parseKey(clave);
+        this.alphabet = generar_alfabeto();
+    }
+
+    public BigVigenere(String numericKey) {
+        if (numericKey == null || numericKey.isEmpty()) {
+            throw new IllegalArgumentException("La clave no puede estar vacía");
+        }
+        if (!numericKey.matches("\\d+")) {
+            throw new IllegalArgumentException("La clave debe contener solo dígitos (0-9)");
+        }
+        this.key = parseKey(numericKey);
+        this.alphabet = generar_alfabeto();
+    }
+
+    private int[] parseKey(String keyStr) {
+        int[] result = new int[keyStr.length()];
+        for (int i = 0; i < keyStr.length(); i++) {
+            result[i] = Character.getNumericValue(keyStr.charAt(i));
+        }
+        return result;
+    }
+
+    private char[][] generar_alfabeto() {
+        char[][] alphabet = new char[64][64];
+        char currentChar = 'a';
+        for (int i = 0; i < 64; i++) {
+            char c = currentChar;
+            for (int j = 0; j < 64; j++) {
+                alphabet[i][j] = c;
+                c = getNextChar(c);
+            }
+            currentChar = getNextChar(currentChar);
+        }
+        return alphabet;
+    }
+
+    private char getNextChar(char c) {
+        switch (c) {
+            case 'n': return 'ñ';
+            case 'ñ': return 'o';
+            case 'N': return 'Ñ';
+            case 'Ñ': return 'O';
+            case 'z': return 'A';
+            case 'Z': return '0';
+            case '9': return 'a';
+            default: return (char)(c + 1);
+        }
+    }
+
+    public String encrypt(String message) {
+        if (message == null) return "";
+
+        StringBuilder encryptMessage = new StringBuilder();
+        int keyIndex = 0;
+        for (int i = 0; i < message.length(); i++) {
+            char currentChar = message.charAt(i);
+            if (currentChar == ' ') {
+                encryptMessage.append(' ');
+                continue;
+            }
+            int load = getLoadValue(currentChar);
+            if (load == -1) continue;
+            for (int j = load; j < 64; j++) {
+                if (currentChar == alphabet[0][j]) {
+                    int k = key[keyIndex] + 54;
+                    encryptMessage.append(alphabet[k][j]);
+                    break;
+                }
+            }
+            keyIndex = (keyIndex + 1) % key.length;
+        }
+        return encryptMessage.toString();
+    }
+
+    public String decrypt(String encryptedMessage) {
+        if (encryptedMessage == null) return "";
+
+        StringBuilder decryptMessage = new StringBuilder();
+        int keyIndex = 0;
+        for (int i = 0; i < encryptedMessage.length(); i++) {
+            char currentChar = encryptedMessage.charAt(i);
+            if (currentChar == ' ') {
+                decryptMessage.append(' ');
+                continue;
+            }
+            int k = key[keyIndex] + 54;
+            for (int j = 0; j < 64; j++) {
+                if (currentChar == alphabet[k][j]) {
+                    decryptMessage.append(alphabet[0][j]);
+                    break;
+                }
+            }
+            keyIndex = (keyIndex + 1) % key.length;
+        }
+        return decryptMessage.toString();
+    }
+
+    private int getLoadValue(char c) {
+        if (c >= 'a' && c <= 'z') return 0;
+        if (c >= 'A' && c <= 'Z') return 27;
+        if (c >= '0' && c <= '9') return 54;
+        return -1;
+    }
+
+    public void reEncrypt() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Ingresar mensaje encriptado: ");
+        String encryptedMessage = br.readLine();
+
+        if (encryptedMessage == null || encryptedMessage.trim().isEmpty()) {
+            System.out.println("El mensaje encriptado no puede estar vacío.");
+            return;
+        }
+
+        String decryptedMessage = this.decrypt(encryptedMessage);
+        System.out.print("Ingrese nueva clave (solo dígitos): ");
+        String nuevaClave = br.readLine();
+
+        if (!nuevaClave.matches("\\d+")) {
+            System.out.println("Error: La clave debe contener solo dígitos.");
+            return;
+        }
+
+        BigVigenere newVigenere = new BigVigenere(nuevaClave);
+        String newMessage = newVigenere.encrypt(decryptedMessage);
+        System.out.println("Nuevo mensaje encriptado: " + newMessage);
+    }
+
+    public char search(int position) {
+        if (position < 0 || position >= 64 * 64) {
+            throw new IllegalArgumentException("Posición fuera del rango válido");
+        }
+        int row = position / 64;
+        int col = position % 64;
+        return alphabet[row][col];
+    }
+
+    public char optimalSearch(int position) {
+        return search(position);
+    }
+
+    public static void main(String[] args) throws IOException {
+        BigVigenere vigenere = new BigVigenere(); 
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Ingrese mensaje a encriptar: ");
+        String mensaje = br.readLine();
+
+        String encriptado = vigenere.encrypt(mensaje);
+        System.out.println("Mensaje encriptado: " + encriptado);
+    }
+}
