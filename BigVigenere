@@ -17,7 +17,7 @@ public class BigVigenere {
             throw new IllegalArgumentException("La clave no puede estar vacía");
         }
         if (!numericKey.matches("\\d+")) {
-            throw new IllegalArgumentException("La clave debe contener solo dígitos (0-9)");
+            throw new IllegalArgumentException("La clave debe contener solo dígitos");
         }
         this.key = parseKey(numericKey);
         this.alphabet = generar_alfabeto();
@@ -82,7 +82,6 @@ public class BigVigenere {
         }
         return encryptMessage.toString();
     }
-
     public String decrypt(String encryptedMessage) {
         if (encryptedMessage == null) return "";
 
@@ -108,7 +107,9 @@ public class BigVigenere {
 
     private int getLoadValue(char c) {
         if (c >= 'a' && c <= 'z') return 0;
+        if (c == 'ñ') return 0;
         if (c >= 'A' && c <= 'Z') return 27;
+        if (c == 'Ñ') return 27;
         if (c >= '0' && c <= '9') return 54;
         return -1;
     }
@@ -145,19 +146,109 @@ public class BigVigenere {
         int col = position % 64;
         return alphabet[row][col];
     }
-
     public char optimalSearch(int position) {
         return search(position);
     }
 
-    public static void main(String[] args) throws IOException {
-        BigVigenere vigenere = new BigVigenere(); 
+    public static String simpleVigenere(String message, String key) {
+        StringBuilder result = new StringBuilder();
+        key = key.toLowerCase();
+        int keyIndex = 0;
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Ingrese mensaje a encriptar: ");
-        String mensaje = br.readLine();
-
-        String encriptado = vigenere.encrypt(mensaje);
-        System.out.println("Mensaje encriptado: " + encriptado);
+        for (char c : message.toCharArray()) {
+            if (Character.isLetter(c)) {
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                int shift = key.charAt(keyIndex % key.length()) - 'a';
+                char encrypted = (char) ((c - base + shift) % 26 + base);
+                result.append(encrypted);
+                keyIndex++;
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
+
+   
+  public static void main(String[] args) throws IOException {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    BigVigenere vigenere = new BigVigenere();
+
+    while (true) {
+        System.out.println("\n--- MENÚ ---");
+        System.out.println("1. Cifrar mensaje");
+        System.out.println("2. Descifrar mensaje");
+        System.out.println("3. Re-encriptar con nueva clave");
+        System.out.println("4. Buscar carácter por posición (search)");
+        System.out.println("5. Buscar carácter por posición (optimalSearch)");
+        System.out.println("6. Salir");
+        System.out.print("Opción: ");
+        String opcion = br.readLine();
+
+        switch (opcion) {
+            case "1":
+                System.out.print("Ingrese el mensaje a cifrar: ");
+                String mensaje = br.readLine();
+
+                long startEncrypt = System.nanoTime();
+                String cifrado = vigenere.encrypt(mensaje);
+                long endEncrypt = System.nanoTime();
+                double tiempoEncrypt = (endEncrypt - startEncrypt) / 1_000_000.0;
+
+                System.out.println("Mensaje cifrado: " + cifrado);
+                System.out.printf("Tiempo de ejecución: %.3f ms\n", tiempoEncrypt);
+                break;
+
+            case "2":
+                System.out.print("Ingrese el mensaje cifrado: ");
+                String encriptado = br.readLine();
+
+                long startDecrypt = System.nanoTime();
+                String descifrado = vigenere.decrypt(encriptado);
+                long endDecrypt = System.nanoTime();
+                double tiempoDecrypt = (endDecrypt - startDecrypt) / 1_000_000.0;
+
+                System.out.println("Mensaje descifrado: " + descifrado);
+                System.out.printf("Tiempo de ejecución: %.3f ms\n", tiempoDecrypt);
+                break;
+
+            case "3":
+                long startReencrypt = System.nanoTime();
+                vigenere.reEncrypt();
+                long endReencrypt = System.nanoTime();
+                double tiempoReencrypt = (endReencrypt - startReencrypt) / 1_000_000.0;
+                System.out.printf("Tiempo de ejecución del re-encriptado: %.3f ms\n", tiempoReencrypt);
+                break;
+
+            case "4":
+                System.out.print("Ingrese posición (0 a 4095): ");
+                int pos1 = Integer.parseInt(br.readLine());
+                try {
+                    char c1 = vigenere.search(pos1);
+                    System.out.println("Carácter en posición " + pos1 + ": " + c1);
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+                break;
+
+            case "5":
+                System.out.print("Ingrese posición (0 a 4095): ");
+                int pos2 = Integer.parseInt(br.readLine());
+                try {
+                    char c2 = vigenere.optimalSearch(pos2);
+                    System.out.println("Carácter en posición " + pos2 + ": " + c2);
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+                break;
+
+            case "6":
+                System.out.println("Saliendo...");
+                return;
+
+            default:
+                System.out.println("Opción inválida.");
+        }
+    }
+}
 }
