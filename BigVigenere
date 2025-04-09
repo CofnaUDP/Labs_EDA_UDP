@@ -150,7 +150,7 @@ public class BigVigenere {
         return search(position);
     }
 
-    public static String simpleVigenere(String message, String key) {
+    public static String VigenereCipher(String message, String key) {
         StringBuilder result = new StringBuilder();
         key = key.toLowerCase();
         int keyIndex = 0;
